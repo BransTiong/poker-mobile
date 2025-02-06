@@ -1,0 +1,164 @@
+// This is your Prisma schema file
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  username      String    @unique
+  avatarUrl     String?
+  balance       Float     @default(10000) // Starting balance of 10,000 chips
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  gamesAsParticipant GameParticipant[]
+  gamesCreated       Game[]
+  transactions       Transaction[]
+  friends           Friend[] @relation("UserFriends")
+  friendsOf         Friend[] @relation("UserFriendOf")
+  gameHistories     GameHistory[]
+  sentRequests      FriendRequest[] @relation("SentRequests")
+  receivedRequests  FriendRequest[] @relation("ReceivedRequests")
+}
+
+model Friend {
+  id        String   @id @default(uuid())
+  userId    String
+  friendId  String
+  createdAt DateTime @default(now())
+
+  user      User     @relation("UserFriends", fields: [userId], references: [id])
+  friend    User     @relation("UserFriendOf", fields: [friendId], references: [id])
+
+  @@unique([userId, friendId])
+  @@index([userId])
+  @@index([friendId])
+}
+
+model Game {
+  id              String    @id @default(uuid())
+  createdById     String
+  gameType        GameType  @default(TEXAS_HOLDEM)
+  isPrivate       Boolean   @default(false)
+  buyIn           Float
+  minPlayers      Int       @default(2)
+  maxPlayers      Int       @default(9)
+  smallBlind      Float
+  bigBlind        Float
+  rakePercentage  Float     @default(2.5) // 2.5% rake by default
+  status          GameStatus @default(WAITING)
+  seed            String?   // For provably fair system
+  revealedSeed    String?   // Original seed revealed after game
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  createdBy       User      @relation(fields: [createdById], references: [id])
+  participants    GameParticipant[]
+  gameHistories   GameHistory[]
+}
+
+model GameParticipant {
+  id        String    @id @default(uuid())
+  gameId    String
+  userId    String
+  position  Int       // Seat position at the table
+  stack     Float     // Current chip stack
+  status    PlayerStatus @default(ACTIVE)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Relations
+  game      Game      @relation(fields: [gameId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@unique([gameId, position]) // Each position can only be occupied once per game
+  @@unique([gameId, userId])   // A user can only participate once per game
+}
+
+model GameHistory {
+  id          String    @id @default(uuid())
+  gameId      String
+  userId      String
+  action      String    // e.g., "CALL", "RAISE", "FOLD"
+  amount      Float?    // Amount bet/raised
+  cards       String?   // Player's cards in JSON format
+  potSize     Float     // Pot size at the time of action
+  createdAt   DateTime  @default(now())
+
+  // Relations
+  game        Game      @relation(fields: [gameId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
+}
+
+model Transaction {
+  id          String    @id @default(uuid())
+  userId      String
+  amount      Float
+  type        TransactionType
+  gameId      String?
+  description String?
+  createdAt   DateTime  @default(now())
+
+  // Relations
+  user        User      @relation(fields: [userId], references: [id])
+}
+
+model FriendRequest {
+  id        String   @id @default(uuid())
+  senderId  String
+  receiverId String
+  status    RequestStatus @default(PENDING)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sender    User     @relation("SentRequests", fields: [senderId], references: [id])
+  receiver  User     @relation("ReceivedRequests", fields: [receiverId], references: [id])
+
+  @@unique([senderId, receiverId])
+  @@index([senderId])
+  @@index([receiverId])
+}
+
+enum GameType {
+  TEXAS_HOLDEM
+  // Add more game types in the future
+}
+
+enum GameStatus {
+  WAITING
+  STARTING
+  IN_PROGRESS
+  FINISHED
+  CANCELLED
+}
+
+enum PlayerStatus {
+  ACTIVE
+  FOLDED
+  ALL_IN
+  SITTING_OUT
+  LEFT
+}
+
+enum TransactionType {
+  BUY_IN
+  WINNINGS
+  RAKE
+  ADMIN_ADJUSTMENT
+}
+
+enum RequestStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+} 
