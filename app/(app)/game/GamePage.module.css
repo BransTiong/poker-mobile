@@ -1,0 +1,131 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: #000;
+    color: white;
+    padding: 20px;
+}
+
+.opponents {
+    display: flex;
+    justify-content: space-around;
+    padding: 20px;
+}
+
+.opponent {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 25px;
+    background-color: #333;
+    position: relative;
+    margin-bottom: 5px;
+}
+
+.dealerButton {
+    position: absolute;
+    right: -10px;
+    bottom: -10px;
+    background-color: white;
+    color: black;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+.blindIndicator {
+    position: absolute;
+    left: -10px;
+    bottom: -10px;
+    background-color: #ffd700;
+    color: black;
+    border-radius: 12px;
+    padding: 2px 4px;
+    font-size: 10px;
+}
+
+.communityCards {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: auto;
+}
+
+.card {
+    width: 60px;
+    height: 90px;
+    background-color: white;
+    color: black;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.playerSection {
+    margin-top: auto;
+    padding: 20px;
+}
+
+.playerInfo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.playerCards {
+    display: flex;
+    gap: 10px;
+}
+
+.playerChips {
+    font-size: 24px;
+    margin-left: 20px;
+}
+
+.actionButtons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.actionButton {
+    padding: 10px 20px;
+    border-radius: 20px;
+    border: 1px solid #333;
+    background-color: transparent;
+    color: white;
+    cursor: pointer;
+}
+
+.customRaiseButton {
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
+    border: 1px solid #333;
+    background-color: transparent;
+    color: white;
+    cursor: pointer;
+}
+
+.nextGameButton {
+    width: 100%;
+    padding: 10px;
+    border-radius: 20px;
+    border: 1px solid #333;
+    background-color: transparent;
+    color: white;
+    cursor: pointer;
+}

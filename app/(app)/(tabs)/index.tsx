@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView } from 'react-native';
 import { useState } from 'react';
+import { CreateBotGame } from '../../components/CreateBotGame';
 
 export default function LobbyPage() {
   const [games, setGames] = useState([
@@ -16,6 +17,8 @@ export default function LobbyPage() {
             <Text style={styles.createButtonText}>Create Game</Text>
           </TouchableOpacity>
         </View>
+
+        <CreateBotGame />
 
         <FlatList
           data={games}
@@ -67,7 +70,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   listContent: {
-    paddingBottom: 16, // Add padding at the bottom of the list
+    paddingBottom: 16,
   },
   gameCard: {
     backgroundColor: '#242424',
