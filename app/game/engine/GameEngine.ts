@@ -16,15 +16,20 @@ class GameEngine {
         this.gameState = GameState.WAITING;
         this.communityCards = [];
         this.burnedCards = [];
-        this.deckManager.shuffle(); // Shuffle once in constructor
+        this.deckManager.shuffle();
+        this.assignPositions();
     }
 
     private initializePlayers(count: number): Player[] {
         return Array.from({ length: count }, (_, index) => ({
-            id: index + 1,
+            id: (index + 1).toString(),
+            name: `Player ${index + 1}`,
             position: index,
             cards: [],
-            chips: 1000, // Default starting chips
+            chips: 1000,
+            stack: 1000,
+            bet: 0,
+            status: 'ACTIVE',
             isDealer: false,
             isSmallBlind: false,
             isBigBlind: false

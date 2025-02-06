@@ -40,10 +40,14 @@ export enum GameState {
 }
 
 export interface Player {
-    id: number;
+    id: string;
+    name: string;
     position: number;
     cards: Card[];
     chips: number;
+    stack: number;
+    bet: number;
+    status: PlayerStatus;
     isDealer: boolean;
     isSmallBlind: boolean;
     isBigBlind: boolean;

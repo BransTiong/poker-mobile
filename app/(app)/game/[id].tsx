@@ -38,6 +38,8 @@ export default function GamePage() {
     };
 
     const getPlayerPosition = (player: any) => {
+        if (!player) return '';  // Add early return if player is undefined
+        
         const positions = [];
         if (player.isDealer) positions.push('D');
         if (player.isSmallBlind) positions.push('SB');
@@ -53,7 +55,7 @@ export default function GamePage() {
         <SafeAreaView style={styles.container}>
             {/* Opponents Section */}
             <View style={styles.opponents}>
-                {gameState?.players.slice(0, -1).map((player: any, index: number) => (
+                {gameState?.players && gameState.players.slice(0, -1).map((player: any, index: number) => (
                     <View key={player.id} style={styles.opponent}>
                         <View style={styles.avatar}>
                             <Text style={styles.position}>{getPlayerPosition(player)}</Text>
