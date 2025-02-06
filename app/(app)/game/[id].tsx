@@ -1,6 +1,6 @@
 'use client';
 
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, SafeAreaView } from 'react-native';
 import { useEffect, useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import { supabase } from '../../hooks/supabase';
@@ -19,20 +19,8 @@ export default function GamePage() {
 
     const initializeGame = async () => {
         try {
-            // Fetch game data from Supabase
-            const { data: gameData, error } = await supabase
-                .from('Game')
-                .select(`
-                    *,
-                    participants:GameParticipant(*)
-                `)
-                .eq('id', id)
-                .single();
-
-            if (error) throw error;
-
-            // Initialize game engine with the number of participants
-            const engine = new GameEngine(gameData.participants.length);
+            // Initialize game engine with 5 players
+            const engine = new GameEngine(5);
             engine.startNewHand();
             
             setGameEngine(engine);
@@ -49,30 +37,59 @@ export default function GamePage() {
         setGameState(gameEngine?.getGameState());
     };
 
+    const getPlayerPosition = (player: any) => {
+        const positions = [];
+        if (player.isDealer) positions.push('D');
+        if (player.isSmallBlind) positions.push('SB');
+        if (player.isBigBlind) positions.push('BB');
+        return positions.join('/');
+    };
+
+    const getCardColor = (suit: string) => {
+        return suit === '♥' || suit === '♦' ? '#ff0000' : '#000000';
+    };
+
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
             {/* Opponents Section */}
             <View style={styles.opponents}>
                 {gameState?.players.slice(0, -1).map((player: any, index: number) => (
                     <View key={player.id} style={styles.opponent}>
                         <View style={styles.avatar}>
-                            {player.isDealer && <Text style={styles.dealerButton}>D</Text>}
-                            {player.isSmallBlind && <Text style={styles.blindIndicator}>SB</Text>}
-                            {player.isBigBlind && <Text style={styles.blindIndicator}>BB</Text>}
+                            <Text style={styles.position}>{getPlayerPosition(player)}</Text>
                         </View>
-                        <Text style={styles.playerName}>Player {player.id}</Text>
-                        <Text style={styles.chips}>{player.chips}</Text>
+                        <Text style={styles.playerName}>Bot {player.id}</Text>
+                        <Text style={styles.chips}>${player.chips}</Text>
+                        <View style={styles.opponentCards}>
+                            {player.cards.map((card: any, cardIndex: number) => (
+                                <View key={cardIndex} style={styles.smallCard}>
+                                    <Text style={[
+                                        styles.smallCardText,
+                                        { color: getCardColor(card.suit) }
+                                    ]}>
+                                        {`${card.rank}${card.suit}`}
+                                    </Text>
+                                </View>
+                            ))}
+                        </View>
                     </View>
                 ))}
             </View>
 
             {/* Community Cards */}
-            <View style={styles.communityCards}>
-                {gameState?.communityCards.map((card: any, index: number) => (
-                    <View key={index} style={styles.card}>
-                        <Text style={styles.cardText}>{`${card.rank}${card.suit}`}</Text>
-                    </View>
-                ))}
+            <View style={styles.communityCardsContainer}>
+                <View style={styles.communityCards}>
+                    {gameState?.communityCards.map((card: any, index: number) => (
+                        <View key={index} style={styles.card}>
+                            <Text style={[
+                                styles.cardText,
+                                { color: getCardColor(card.suit) }
+                            ]}>
+                                {`${card.rank}${card.suit}`}
+                            </Text>
+                        </View>
+                    ))}
+                </View>
             </View>
 
             {/* Player Section */}
@@ -81,13 +98,23 @@ export default function GamePage() {
                     <View style={styles.playerCards}>
                         {gameState?.players[gameState.players.length - 1].cards.map((card: any, index: number) => (
                             <View key={index} style={styles.card}>
-                                <Text style={styles.cardText}>{`${card.rank}${card.suit}`}</Text>
+                                <Text style={[
+                                    styles.cardText,
+                                    { color: getCardColor(card.suit) }
+                                ]}>
+                                    {`${card.rank}${card.suit}`}
+                                </Text>
                             </View>
                         ))}
                     </View>
-                    <Text style={styles.playerChips}>
-                        {gameState?.players[gameState.players.length - 1].chips}
-                    </Text>
+                    <View style={styles.playerDetails}>
+                        <Text style={styles.position}>
+                            {getPlayerPosition(gameState?.players[gameState.players.length - 1])}
+                        </Text>
+                        <Text style={styles.playerChips}>
+                            ${gameState?.players[gameState.players.length - 1].chips}
+                        </Text>
+                    </View>
                 </View>
 
                 {/* Action Buttons */}
@@ -108,7 +135,7 @@ export default function GamePage() {
                     <Text style={styles.buttonText}>Next Game</Text>
                 </TouchableOpacity>
             </View>
-        </View>
+        </SafeAreaView>
     );
 }
 
@@ -116,7 +143,6 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#000',
-        padding: 20,
     },
     opponents: {
         flexDirection: 'row',
@@ -132,40 +158,31 @@ const styles = StyleSheet.create({
         borderRadius: 25,
         backgroundColor: '#333',
         marginBottom: 5,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
-    dealerButton: {
-        position: 'absolute',
-        right: -10,
-        bottom: -10,
-        backgroundColor: 'white',
-        color: 'black',
-        borderRadius: 10,
-        width: 20,
-        height: 20,
-        textAlign: 'center',
-        fontSize: 12,
-    },
-    blindIndicator: {
-        position: 'absolute',
-        left: -10,
-        bottom: -10,
-        backgroundColor: '#ffd700',
-        color: 'black',
-        borderRadius: 12,
-        padding: 2,
-        fontSize: 10,
+    position: {
+        color: '#ffd700',
+        fontSize: 14,
+        fontWeight: 'bold',
     },
     playerName: {
         color: 'white',
+        marginBottom: 2,
     },
     chips: {
         color: 'white',
+        marginBottom: 5,
+    },
+    communityCardsContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     communityCards: {
         flexDirection: 'row',
         justifyContent: 'center',
         gap: 10,
-        marginVertical: 20,
     },
     card: {
         width: 60,
@@ -181,7 +198,6 @@ const styles = StyleSheet.create({
         color: 'black',
     },
     playerSection: {
-        marginTop: 'auto',
         padding: 20,
     },
     playerInfo: {
@@ -194,10 +210,13 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         gap: 10,
     },
+    playerDetails: {
+        alignItems: 'center',
+    },
     playerChips: {
         fontSize: 24,
         color: 'white',
-        marginLeft: 20,
+        marginTop: 5,
     },
     actionButtons: {
         flexDirection: 'row',
@@ -230,5 +249,23 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#333',
         marginTop: 10,
+    },
+    opponentCards: {
+        flexDirection: 'row',
+        gap: 5,
+        marginTop: 5,
+    },
+    smallCard: {
+        width: 30,
+        height: 45,
+        backgroundColor: 'white',
+        borderRadius: 4,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginHorizontal: 2,
+    },
+    smallCardText: {
+        fontSize: 12,
+        color: 'black',
     },
 });
